@@ -3,6 +3,7 @@
 ### **SPECIAL NOTE: If Visual Studio Code complains about that it is corrupted, simply click “Don't show again”.**
 ### **NOTE: Every time after Visual Studio Code is updated, please re-enable Editor Background By Path**
 ### **NOTE: Every time you change the configuration, please re-enable Editor Background By Path.**
+### **NOTE: Before you uninstall the extension run the Editor Background By Path: Disable command to cleanup the patched JS from vscode files.**
 
 Add custom background by path to your Visual Studio Code. 
 
@@ -15,11 +16,20 @@ Add custom background by path to your Visual Studio Code.
 2. Add to `settings.json`:
 
    ```json
-	"editor_background_by_path.background_map": {
-		"substring-of-matched-path": "url",
-		"substring-of-matched-path": "/c:/image.png"
-	}
+		"editor_background_by_path.background_map": {
+				"path-pattern-1": "/absolute/path/to/image1.png",
+				"path-pattern-2": "/absolute/path/to/image2.jpg"
+		}
    ```
+
+		```json
+		"per_project_background.background_map": {
+				"dog": "/c:/vscode_logos/dog.png",
+				"kitten": "/c:/vscode_logos/kitten.png",
+		}
+		```
+
+
 
 3. Visual Studio Code automatically detects changes and restarts itself.
 
@@ -73,14 +83,6 @@ File URIs support VSCode variables like: `${userHome}`. It just replaces support
 It also supports env variables like `${env:ENV_VAR_NAME}` and you can specify a fallback value like `${env:ENV_VAR:defaultvalue}`
 
 
-### Example
-
-```json
-"per_project_background.background_map": {
-	"my-cool-project": "d:/project_logo.png",
-	"my-other-cool-project2": "d:/other_cool_project-logo.jpg",
-}
-```
 
 # Disclaimer
 

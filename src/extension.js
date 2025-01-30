@@ -193,5 +193,7 @@ function activate(context) {
 }
 exports.activate = activate;
 
-function deactivate() {}
+function deactivate() {
+	cmdUninstall()
+}
 exports.deactivate = deactivate;
