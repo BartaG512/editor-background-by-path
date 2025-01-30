@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to remove old background styles for the split-view
     function removeOldStyles({ styleTag, splitViewId, index }) {
+				if (!styleTag){
+					return
+				}
         const styleRegex = new RegExp(`\\/\\* ${splitViewId} \\*\\/([\\s\\S]*?)\\/\\* end-${splitViewId} \\*\\/`, "g");
         const oldStyles = styleTag.innerHTML.match(styleRegex);
         if (oldStyles) {

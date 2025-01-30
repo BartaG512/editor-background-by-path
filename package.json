@@ -3,7 +3,7 @@
 	"displayName": "Editor Background By Path",
 	"description": "Enables dynamic background image changes in the editor based on the file path of the active editor",
 	"version": "1.0.0",
-	"publisher": "BartaG512",
+	"publisher": "bartag",
 	"author": {
 		"email": "barta.gergo.64@gmail.com",
 		"name": "Barta Gergo",

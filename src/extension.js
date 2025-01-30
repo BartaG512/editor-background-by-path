@@ -96,7 +96,7 @@ function activate(context) {
 		const htmlDir = path.dirname(htmlFile);
 		const htmlDirItems = await fs.promises.readdir(htmlDir);
 		for (const item of htmlDirItems) {
-			if (item.endsWith(".bak-custom-css")) {
+			if (item.endsWith(".bak-background-perp")) {
 				await fs.promises.unlink(path.join(htmlDir, item));
 			}
 		}

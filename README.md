@@ -15,10 +15,10 @@ Add custom background by path to your Visual Studio Code.
 2. Add to `settings.json`:
 
    ```json
-      "editor_background_by_path.background_map": {
-				"substring-of-matched-path": "url",
-				"substring-of-matched-path": "/c:/image.png"
-			}
+	"editor_background_by_path.background_map": {
+		"substring-of-matched-path": "url",
+		"substring-of-matched-path": "/c:/image.png"
+	}
    ```
 
 3. Visual Studio Code automatically detects changes and restarts itself.
@@ -77,9 +77,9 @@ It also supports env variables like `${env:ENV_VAR_NAME}` and you can specify a 
 
 ```json
 "per_project_background.background_map": {
-		"my-cool-project": "d:/project_logo.png",
-		"my-other-cool-project2": "d:/other_cool_project-logo.jpg",
-	}
+	"my-cool-project": "d:/project_logo.png",
+	"my-other-cool-project2": "d:/other_cool_project-logo.jpg",
+}
 ```
 
 # Disclaimer
@@ -93,4 +93,4 @@ The extension will keep a copy of the original file in case something goes wrong
 
 As this extension modifies Visual Studio Code files, it will get disabled with every Visual Studio Code update. You will have to enable the extension via the command palette.
 
-Take into account that this extension is still in beta, so you may find some bugs while playing with it. Please, report them to [the issues section of the Github's repo](https://github.com/BartaG512/editor-background-by-path.git).
+Take into account that this extension is still in beta, so you may find some bugs while playing with it. Please, report them to [the issues section of the Github's repo](https://github.com/BartaG512/editor-background-by-path/).
