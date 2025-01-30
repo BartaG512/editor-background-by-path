@@ -115,9 +115,9 @@ function activate(context) {
 		html = html.replace(
 			/(<\/html>)/,
 			`<!-- !! BACKGROUND-BY-PROJECT-ID ${uuidSession} !! -->\n` +
-				"<!-- !! BACKGROUND-BY-PROJECT-START !! -->\n" +
-				indicatorJS +
-				"<!-- !! BACKGROUND-BY-PROJECT-END !! -->\n</html>"
+			"<!-- !! BACKGROUND-BY-PROJECT-START !! -->\n" +
+			indicatorJS +
+			"<!-- !! BACKGROUND-BY-PROJECT-END !! -->\n</html>"
 		);
 		try {
 			await fs.promises.writeFile(htmlFile, html, "utf-8");
