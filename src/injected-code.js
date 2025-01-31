@@ -1,10 +1,10 @@
-
 /**
  * RUNS IN DOM Injected by extension
  */
 document.addEventListener("DOMContentLoaded", function () {
-    const backgroundMap = {};
+    const backgroundArray = [];
     let previousBackgrounds = new Map(); 
+    let backgroundMap = new Map();
 
     // Utility function to generate UUID
     function generateSimpleUUID() {
@@ -28,6 +28,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to apply the background style to a split-view container
     function applyBackgroundStyle({ styleTag, splitViewId, dataUri, matchedBackground, monacoEditorElement }) {
+        let backgroundImage = '';
+        let additionalStyles = '';
+
+        if (typeof matchedBackground === 'string') {
+            backgroundImage = `background-image: url('${matchedBackground}')!important;`;
+        } else if (typeof matchedBackground === 'object') {
+						console.log('matchedBackground object!');
+            if (matchedBackground.url) {
+                backgroundImage = `background-image: url('${matchedBackground.url}')!important;`;
+            }
+            additionalStyles = Object.entries(matchedBackground)
+                .filter(([key]) => key !== 'url')
+                .filter(([key]) => key !== 'pattern')
+                .map(([key, value]) => `${key}: ${value};`)
+                .join(' ');
+        }
+
         const newStyleContent = `
 /* ${splitViewId} */
 .minimap{opacity:0.8;} 
@@ -44,7 +61,8 @@ document.addEventListener("DOMContentLoaded", function () {
     background-position: 100% 100%;
     background-size: 100px auto;
     opacity: 0.6;
-    background-image: url('${matchedBackground}')!important;
+    ${backgroundImage}
+    ${additionalStyles}
 }
 /* end-${splitViewId} */
         `;
@@ -52,6 +70,23 @@ document.addEventListener("DOMContentLoaded", function () {
         styleTag.innerHTML += newStyleContent;
         console.log(`✅ Background applied to split-view ${splitViewId}.`);
         previousBackgrounds.set(monacoEditorElement, matchedBackground);
+    }
+
+    // Function to match background based on config
+    function matchBackground(dataUri) {
+        for (const [pattern, object] of backgroundMap) {
+					try {
+						const regex = new RegExp(pattern);
+						if (regex.test(dataUri)) {
+							return object;
+						}
+					} catch (e) {
+						if (dataUri.includes(pattern)) {
+							return object;
+						}
+					}
+        }
+        return null;
     }
 
     function updateEditorBackground() {
@@ -86,13 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            let matchedBackground = null;
-            for (const [key, background] of Object.entries(backgroundMap)) {
-                if (dataUri.includes(key)) {
-                    matchedBackground = background;
-                    break;
-                }
-            }
+            const matchedBackground = matchBackground(dataUri);
 
             if (!matchedBackground) {
                 removeOldStyles({ styleTag, splitViewId, index });
@@ -113,6 +142,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function generateBackgroundMap() {
+			backgroundMap = new Map();
+			for (const object of backgroundArray) {
+				backgroundMap.set(object.pattern, object);
+			}
+    }
+
+    generateBackgroundMap();
     updateEditorBackground();
 
     const observer = new MutationObserver(() => {

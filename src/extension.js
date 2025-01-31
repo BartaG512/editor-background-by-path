@@ -108,7 +108,7 @@ function activate(context) {
 		let html = await fs.promises.readFile(htmlFile, "utf-8");
 		html = clearExistingPatches(html);
 
-		const indicatorJS = await patchHtml(config.background_map);
+		const indicatorJS = await patchHtml(config.backgrounds);
 		html = html.replace(/<meta\s+http-equiv="Content-Security-Policy"[\s\S]*?\/>/, "");
 
 
@@ -180,7 +180,7 @@ function activate(context) {
 	context.subscriptions.push(updateCustomCSS);
 
 	vscode.workspace.onDidChangeConfiguration(async ex => {
-		const hasChanged = ex.affectsConfiguration("editor_background_by_path.background_map");
+		const hasChanged = ex.affectsConfiguration("editor_background_by_path.backgrounds");
 		if (!hasChanged) {
 			return;
 		}

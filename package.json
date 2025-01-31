@@ -47,10 +47,38 @@
 		"configuration": {
 			"title": "Editor Background By Path Configuration",
 			"properties": {
-				"editor_background_by_path.background_map": {
-					"type": "object",
-					"default": {},
-					"description": "Mapping of file paths matches to specific keywords for background injection."
+				"editor_background_by_path.backgrounds": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"pattern": {
+								"type": "string",
+								"description": "File path pattern or regex (use 'regex:<pattern>')."
+							},
+							"background": {
+								"oneOf": [
+									{
+										"type": "string",
+										"description": "Background image URL."
+									},
+									{
+										"type": "object",
+										"description": "CSS rules for background.",
+										"properties": {
+											"url": {
+												"type": "string",
+												"description": "Background image URL."
+											}
+										}
+									}
+								]
+							}
+						},
+						"required": ["pattern", "background"]
+					},
+					"default": [],
+					"description": "Array of objects mapping file path patterns to specific backgrounds."
 				}
 			}
 		}

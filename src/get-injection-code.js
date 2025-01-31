@@ -1,8 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const injectedScript = fs.readFileSync(path.resolve(__dirname, 'per-project-background.js')).toString();
+const injectedScript = fs.readFileSync(path.resolve(__dirname, 'injected-code.js')).toString();
 function getInjectionJs(backgroundConfig) {
-	return injectedScript.replace('const backgroundMap = {};', `const backgroundMap = ${JSON.stringify(backgroundConfig)}`);
+	console.log('backgroundConfig:', backgroundConfig);
+	return injectedScript.replace('const backgroundArray = [];', `const backgroundArray = ${JSON.stringify(backgroundConfig)}`);
 }
 module.exports = getInjectionJs;
