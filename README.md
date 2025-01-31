@@ -2,7 +2,7 @@
 
 ### **SPECIAL NOTE: If Visual Studio Code complains about that it is corrupted, simply click “Don't show again”.**
 ### **NOTE: Every time after Visual Studio Code is updated, please re-enable Editor Background By Path**
-### **NOTE: Every time you change the configuration, please re-enable Editor Background By Path.**
+### **NOTE: Every time you change the configuration, it is auto reloading but if not just, run reload Editor Background By Path.**
 ### **NOTE: Before you uninstall the extension run the Editor Background By Path: Disable command to cleanup the patched JS from vscode files.**
 
 Add custom background by path to your Visual Studio Code. 
@@ -23,7 +23,7 @@ Add custom background by path to your Visual Studio Code.
    ```
 
 		```json
-		"per_project_background.background_map": {
+		"editor_background_by_path.background_map": {
 				"dog": "/c:/vscode_logos/dog.png",
 				"kitten": "/c:/vscode_logos/kitten.png",
 		}
@@ -31,11 +31,10 @@ Add custom background by path to your Visual Studio Code.
 
 
 
-3. Visual Studio Code automatically detects changes and restarts itself.
+3. Visual Studio Code automatically detects changes in configuration and restarts itself.
 
-4. Activate command "Reload Custom CSS and JS".
+4. At first time after install Activate command Editor Background By Path: Enable".
 
-5. Restart.
 
 ## Extension commands
 
