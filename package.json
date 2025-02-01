@@ -12,10 +12,16 @@
 	"engines": {
 		"vscode": "^1.93.0"
 	},
+	"keywords": [
+		"background",
+		"gif",
+		"image",
+		"wallpaper"
+	],
 	"categories": [
 		"Other",
 		"Themes"
-	],
+	], 
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/BartaG512/editor-background-by-path.git/"
