@@ -9,7 +9,6 @@ This extension lets you change the background image of your editor based on the 
 
 #### **NOTE: If Visual Studio Code complains about that it is corrupted, simply click “Don't show again”.**
 #### **NOTE: Every time after Visual Studio Code is updated, please re-enable Editor Background By Path**
-#### **NOTE: Every time you change the configuration, it auto-reloads. If not, just run 'Reload Editor Background By Path.**
 #### **NOTE: Before you uninstall the extension run the Editor Background By Path: Disable command to cleanup the patched JS from vscode files.**
 
 ![example](https://github.com/BartaG512/editor-background-by-path/raw/HEAD/images/example.png)
@@ -26,7 +25,7 @@ This extension lets you change the background image of your editor based on the 
     "pattern": "dog",
     "url": "/absolute/path/to/dog.png"
   },
-	{
+  {
     "pattern": ".*kitten.*app\\.js$",
     "url": "/absolute/path/to/kitten.jpg",
     "background-size": "300px auto",
@@ -36,7 +35,7 @@ This extension lets you change the background image of your editor based on the 
 ]
 ```
 
-3. Visual Studio Code automatically detects changes in configuration and restarts itself.
+3. Visual Studio Code automatically detects changes in configuration applies the configurations.
 
 4. At first time after install Activate command "`Editor Background By Path: Enable`".
 
