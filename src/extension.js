@@ -211,8 +211,6 @@ class EditBackgroundByPath {
   updateStatusBarTooltip() {
     const config = vscode.workspace.getConfiguration('editor_background_by_path');
     this.statusBarItem.tooltip = JSON.stringify(config.backgrounds);
-    this.statusBarItem.hide();
-    this.statusBarItem.show();
   }
 }
 
