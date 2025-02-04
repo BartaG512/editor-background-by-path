@@ -35,7 +35,7 @@ This extension lets you change the background image of your editor based on the 
 ]
 ```
 
-3. Visual Studio Code automatically detects changes in configuration applies the configurations.
+3. "Visual Studio Code automatically detects changes in the configuration and applies them immediately."
 
 4. At first time after install Activate command "`Editor Background By Path: Enable`".
 

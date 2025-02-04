@@ -7,71 +7,83 @@ const msg = require('./messages').messages;
 const uuid = require('uuid');
 const getInjectionJs = require('./get-injection-code');
 
-function activate(context) {
-  const appDir = require.main
-    ? path.dirname(require.main.filename)
-    : globalThis._VSCODE_FILE_ROOT;
-
-  if (!appDir) {
-    vscode.window.showInformationMessage(msg.unableToLocateVsCodeInstallationPath);
+class EditBackgroundByPath {
+  constructor(context) {
+    this.context = context;
+    this.appDir = require.main ? path.dirname(require.main.filename) : globalThis._VSCODE_FILE_ROOT;
+    this.base = path.join(this.appDir, 'vs', 'code');
+    this.htmlFile = this.getHtmlFilePath();
+    this.statusBarItem = null;
   }
 
-  const base = path.join(appDir, 'vs', 'code');
-  let htmlFile = path.join(base, 'electron-sandbox', 'workbench', 'workbench.html');
-
-  if (!fs.existsSync(htmlFile)) {
-    htmlFile = path.join(base, 'electron-sandbox', 'workbench', 'workbench-apc-extension.html');
-  }
-
-  if (!fs.existsSync(htmlFile)) {
-    htmlFile = path.join(base, 'electron-sandbox', 'workbench', 'workbench.esm.html');
-  }
-
-  if (!fs.existsSync(htmlFile)) {
-    vscode.window.showInformationMessage(msg.unableToLocateVsCodeInstallationPath);
-  }
-
-  const BackupFilePath = (uuid) => {
-    return path.join(base, 'electron-sandbox', 'workbench', `workbench.${uuid}.bak-background-perp`);
-  };
-
-  async function cmdInstall(options) {
-    const uuidSession = uuid.v4();
-    await createBackup(uuidSession);
-    await performPatch(uuidSession, options);
-  }
-
-  async function cmdReinstall(options) {
-    await uninstallImpl();
-    await cmdInstall(options);
-  }
-
-  async function cmdUninstall() {
-    await uninstallImpl();
-    reloadWindow();
-  }
-
-  async function uninstallImpl() {
-    const backupUuid = await getBackupUuid(htmlFile);
-
-    if (!backupUuid) {
-      return;
+  activate() {
+    if (!this.appDir) {
+      vscode.window.showInformationMessage(msg.unableToLocateVsCodeInstallationPath);
     }
-    const backupPath = BackupFilePath(backupUuid);
-    await restoreBackup(backupPath);
-    await deleteBackupFiles();
+
+    this.registerCommands();
+    this.setupStatusBar();
+    this.updateStatusBarTooltip();
+
+    vscode.workspace.onDidChangeConfiguration(async (ex) => {
+      const hasChanged = ex.affectsConfiguration('editor_background_by_path.backgrounds');
+      if (!hasChanged) return;
+      await this.cmdReinstall({ reload: false });
+      this.updateStatusBarTooltip();
+    });
+
+    console.log('editor-background-by-path is active!');
+    console.log('Application directory', this.appDir);
+    console.log('Main HTML file', this.htmlFile);
   }
 
-  async function getBackupUuid(htmlFilePath) {
+  getHtmlFilePath() {
+    let htmlFile = path.join(this.base, 'electron-sandbox', 'workbench', 'workbench.html');
+    if (!fs.existsSync(htmlFile)) {
+      htmlFile = path.join(this.base, 'electron-sandbox', 'workbench', 'workbench-apc-extension.html');
+    }
+    if (!fs.existsSync(htmlFile)) {
+      htmlFile = path.join(this.base, 'electron-sandbox', 'workbench', 'workbench.esm.html');
+    }
+    if (!fs.existsSync(htmlFile)) {
+      vscode.window.showInformationMessage(msg.unableToLocateVsCodeInstallationPath);
+    }
+    return htmlFile;
+  }
+
+  BackupFilePath(uuid) {
+    return path.join(this.base, 'electron-sandbox', 'workbench', `workbench.${uuid}.bak-background-perp`);
+  }
+
+  async cmdInstall(options) {
+    const uuidSession = uuid.v4();
+    await this.createBackup(uuidSession);
+    await this.performPatch(uuidSession, options);
+  }
+
+  async cmdReinstall(options) {
+    await this.uninstallImpl();
+    await this.cmdInstall(options);
+  }
+
+  async cmdUninstall() {
+    await this.uninstallImpl();
+    this.reloadWindow();
+  }
+
+  async uninstallImpl() {
+    const backupUuid = await this.getBackupUuid(this.htmlFile);
+    if (!backupUuid) return;
+    const backupPath = this.BackupFilePath(backupUuid);
+    await this.restoreBackup(backupPath);
+    await this.deleteBackupFiles();
+  }
+
+  async getBackupUuid(htmlFilePath) {
     try {
       const htmlContent = await fs.promises.readFile(htmlFilePath, 'utf-8');
-      const m = htmlContent.match(
-        /<!-- !! BACKGROUND-BY-PROJECT-ID ([0-9a-fA-F-]+) !! -->/,
-      );
-
-      if (!m) {
-        return null;
-      }
+      const m = htmlContent.match(/<!-- !! BACKGROUND-BY-PROJECT-ID ([0-9a-fA-F-]+) !! -->/);
+      if (!m) return null;
       return m[1];
     } catch (e) {
       vscode.window.showInformationMessage(msg.somethingWrong + e);
@@ -79,11 +91,11 @@ function activate(context) {
     }
   }
 
-  async function restoreBackup(backupFilePath) {
+  async restoreBackup(backupFilePath) {
     try {
       if (fs.existsSync(backupFilePath)) {
-        await fs.promises.unlink(htmlFile);
-        await fs.promises.copyFile(backupFilePath, htmlFile);
+        await fs.promises.unlink(this.htmlFile);
+        await fs.promises.copyFile(backupFilePath, this.htmlFile);
       }
     } catch (e) {
       vscode.window.showInformationMessage(msg.admin);
@@ -91,19 +103,19 @@ function activate(context) {
     }
   }
 
-  async function createBackup(uuidSession) {
+  async createBackup(uuidSession) {
     try {
-      let html = await fs.promises.readFile(htmlFile, 'utf-8');
-      html = clearExistingPatches(html);
-      await fs.promises.writeFile(BackupFilePath(uuidSession), html, 'utf-8');
+      let html = await fs.promises.readFile(this.htmlFile, 'utf-8');
+      html = this.clearExistingPatches(html);
+      await fs.promises.writeFile(this.BackupFilePath(uuidSession), html, 'utf-8');
     } catch (e) {
       vscode.window.showInformationMessage(msg.admin);
       throw e;
     }
   }
 
-  async function deleteBackupFiles() {
-    const htmlDir = path.dirname(htmlFile);
+  async deleteBackupFiles() {
+    const htmlDir = path.dirname(this.htmlFile);
     const htmlDirItems = await fs.promises.readdir(htmlDir);
     for (const item of htmlDirItems) {
       if (item.endsWith('.bak-background-perp')) {
@@ -112,33 +124,30 @@ function activate(context) {
     }
   }
 
-  async function performPatch(uuidSession, options) {
+  async performPatch(uuidSession, options) {
     const config = vscode.workspace.getConfiguration('editor_background_by_path');
-    let html = await fs.promises.readFile(htmlFile, 'utf-8');
-    html = clearExistingPatches(html);
-
-    const indicatorJS = await patchHtml(config.backgrounds);
+    let html = await fs.promises.readFile(this.htmlFile, 'utf-8');
+    html = this.clearExistingPatches(html);
+    const indicatorJS = await this.patchHtml(config.backgrounds);
     html = html.replace(/<meta\s+http-equiv="Content-Security-Policy"[\s\S]*?\/>/, '');
-
     html = html.replace(
       /(<\/html>)/,
       `<!-- !! BACKGROUND-BY-PROJECT-ID ${uuidSession} !! -->\n` +
-			`<!-- !! BACKGROUND-BY-PROJECT-START !! -->\n${indicatorJS}<!-- !! BACKGROUND-BY-PROJECT-END !! -->\n</html>`,
+      `<!-- !! BACKGROUND-BY-PROJECT-START !! -->\n${indicatorJS}<!-- !! BACKGROUND-BY-PROJECT-END !! -->\n</html>`,
     );
     try {
-      await fs.promises.writeFile(htmlFile, html, 'utf-8');
+      await fs.promises.writeFile(this.htmlFile, html, 'utf-8');
     } catch (e) {
       vscode.window.showInformationMessage(msg.admin);
-      disabledRestart();
+      this.disabledRestart();
       return;
     }
-
     if (options?.reload) {
-      reloadWindow();
+      this.reloadWindow();
     }
   }
 
-  function clearExistingPatches(html) {
+  clearExistingPatches(html) {
     html = html.replace(
       /<!-- !! BACKGROUND-BY-PROJECT-START !! -->[\s\S]*?<!-- !! BACKGROUND-BY-PROJECT-END !! -->\n*/,
       '',
@@ -147,9 +156,7 @@ function activate(context) {
     return html;
   }
 
-  async function patchHtml(config) {
-    // Copy the resource to a staging directory inside the extension dir
-
+  async patchHtml(config) {
     try {
       return `<script>${getInjectionJs(config)}</script>`;
     } catch (e) {
@@ -159,73 +166,68 @@ function activate(context) {
     }
   }
 
-  function reloadWindow() {
-    // reload vscode-window
+  reloadWindow() {
     vscode.commands.executeCommand('workbench.action.reloadWindow');
   }
 
-  function disabledRestart() {
+  disabledRestart() {
     vscode.window.showInformationMessage(msg.disabled, msg.restartIde).then((btn) => {
       if (btn === msg.restartIde) {
-        reloadWindow();
+        this.reloadWindow();
       }
     });
   }
 
-  const installCustomCSS = vscode.commands.registerCommand(
-    'extension.installBackgroundCSS',
-    () => {
-      cmdInstall({ reload: true });
-    },
-  );
-  const uninstallCustomCSS = vscode.commands.registerCommand(
-    'extension.uninstallBackgroundCSS',
-    cmdUninstall,
-  );
-  const updateCustomCSS = vscode.commands.registerCommand(
-    'extension.updateBackgroundCSS',
-    () => {
-      return cmdReinstall({ reload: true });
-    },
-  );
+  registerCommands() {
+    const installCustomCSS = vscode.commands.registerCommand(
+      'extension.installBackgroundCSS',
+      () => {
+        this.cmdInstall({ reload: true });
+      },
+    );
+    const uninstallCustomCSS = vscode.commands.registerCommand(
+      'extension.uninstallBackgroundCSS',
+      this.cmdUninstall.bind(this),
+    );
+    const updateCustomCSS = vscode.commands.registerCommand(
+      'extension.updateBackgroundCSS',
+      () => {
+        return this.cmdReinstall({ reload: true });
+      },
+    );
 
-  context.subscriptions.push(installCustomCSS);
-  context.subscriptions.push(uninstallCustomCSS);
-  context.subscriptions.push(updateCustomCSS);
-
-  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  statusBarItem.text = '$(paintcan) Edit Background';
-  statusBarItem.show();
-  context.subscriptions.push(statusBarItem);
-
-  function updateStatusBarTooltip() {
-    const config = vscode.workspace.getConfiguration('editor_background_by_path');
-    statusBarItem.tooltip = JSON.stringify(config.backgrounds);
-    statusBarItem.hide();
-    statusBarItem.show();
+    this.context.subscriptions.push(installCustomCSS);
+    this.context.subscriptions.push(uninstallCustomCSS);
+    this.context.subscriptions.push(updateCustomCSS);
   }
 
-  vscode.workspace.onDidChangeConfiguration(async(ex) => {
-    const hasChanged = ex.affectsConfiguration('editor_background_by_path.backgrounds');
+  setupStatusBar() {
+    this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    this.statusBarItem.text = '$(paintcan) Edit Background';
+    this.statusBarItem.show();
+    this.context.subscriptions.push(this.statusBarItem);
+  }
 
-    if (!hasChanged) {
-      return;
-    }
-    await cmdReinstall({ reload: false });
-    updateStatusBarTooltip();
-  });
+  updateStatusBarTooltip() {
+    const config = vscode.workspace.getConfiguration('editor_background_by_path');
+    this.statusBarItem.tooltip = JSON.stringify(config.backgrounds);
+    this.statusBarItem.hide();
+    this.statusBarItem.show();
+  }
+}
 
-  updateStatusBarTooltip();
+let editBackgroundByPath;
 
-  console.log('editor-background-by-path is active!');
-  console.log('Application directory', appDir);
-  console.log('Main HTML file', htmlFile);
+function activate(context) {
+  editBackgroundByPath = new EditBackgroundByPath(context);
+  editBackgroundByPath.activate();
+}
+
+function deactivate() {
+  if (editBackgroundByPath) {
+    // editBackgroundByPath.cmdUninstall();
+  }
 }
 
 exports.activate = activate;
-
-function deactivate() {
-  cmdUninstall();
-}
-
 exports.deactivate = deactivate;

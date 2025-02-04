@@ -6,7 +6,7 @@
 	"publisher": "bartag",
 	"author": {
 		"email": "barta.gergo.64@gmail.com",
-		"name": "Barta Gergo",
+		"name": "Barta Gergő",
 		"url": "https://github.com/BartaG512"
 	},
 	"engines": {
@@ -60,34 +60,35 @@
 						"properties": {
 							"pattern": {
 								"type": "string",
-								"description": "File path pattern or regex (use 'regex:<pattern>')."
+								"description": "File path pattern or regex."
 							},
-							"background": {
-								"oneOf": [
-									{
-										"type": "string",
-										"description": "Background image URL."
-									},
-									{
-										"type": "object",
-										"description": "CSS rules for background.",
-										"properties": {
-											"url": {
-												"type": "string",
-												"description": "Background image URL."
-											}
-										}
-									}
-								]
+							"url": {
+								"type": "string",
+								"description": "Background image URL."
+							},
+							"background-size": {
+								"type": "string",
+								"description": "CSS background-size property."
+							},
+							"opacity": {
+								"type": "string",
+								"description": "CSS opacity property."
+							},
+							"background-repeat": {
+								"type": "string",
+								"description": "CSS background-repeat property."
 							}
 						},
+						"additionalProperties": {
+							"type": "string",
+							"description": "Any valid CSS property."
+						},
 						"required": [
-							"pattern",
-							"background"
+							"pattern"
 						]
 					},
 					"default": [],
-					"description": "Array of objects mapping file path patterns to specific backgrounds."
+					"description": "Array of objects mapping file path patterns to specific backgrounds. Any valid CSS property can be used."
 				}
 			}
 		}

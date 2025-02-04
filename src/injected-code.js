@@ -194,14 +194,28 @@ document.addEventListener('DOMContentLoaded', () => {
   updateConfig();
   updateEditorBackground();
 
-  const observer = new MutationObserver(() => {
+	 const observer = new MutationObserver(() => {
     updateConfig();
     updateEditorBackground();
   });
 
-  setTimeout(() => {
-    // const editorElement = document.querySelector('.editor');
-    observer.observe(document.body, { childList: true, subtree: true });
-    console.log('👀 MutationObserver initialized to track changes in the DOM.');
-  }, 1000);
+  const bodyObserver = new MutationObserver((mutations, obs) => {
+    const statusBarElement = document.getElementById('workbench.parts.statusbar');
+
+    if (statusBarElement) {
+      console.log('found status bar element');
+      observer.observe(statusBarElement, {
+        childList: true,
+        subtree: true,
+        attributeFilter: ['aria-label'], // Only listen for aria-label changes
+      });
+      console.log('[Editor Background By Path] 👀 MutationObserver initialized to track changes in the status bar.');
+      obs.disconnect(); // Stop observing once the status bar is found
+    }
+  });
+
+  bodyObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
 });
