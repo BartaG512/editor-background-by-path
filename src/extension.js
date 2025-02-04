@@ -158,7 +158,11 @@ class EditBackgroundByPath {
 
   async patchHtml(config) {
     try {
-      return `<script>${getInjectionJs(config)}</script>`;
+      let res = `<script data-extension="editor-background-by-path">${getInjectionJs(config)}</script>`;
+			res += `<style data-extension="editor-background-by-path">
+				div#bartag\\.editor-background-by-path { display: none!important; }
+			</style>`;
+			return res;
     } catch (e) {
       console.error(e);
       vscode.window.showWarningMessage(msg.cannotLoad('Injection config'));
@@ -222,9 +226,6 @@ function activate(context) {
 }
 
 function deactivate() {
-  if (editBackgroundByPath) {
-    // editBackgroundByPath.cmdUninstall();
-  }
 }
 
 exports.activate = activate;
