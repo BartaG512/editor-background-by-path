@@ -25,9 +25,12 @@ class EditBackgroundByPath {
     this.setupStatusBar();
     this.updateStatusBarTooltip();
 
-    vscode.workspace.onDidChangeConfiguration(async (ex) => {
+    vscode.workspace.onDidChangeConfiguration(async(ex) => {
       const hasChanged = ex.affectsConfiguration('editor_background_by_path.backgrounds');
-      if (!hasChanged) return;
+
+      if (!hasChanged) {
+        return;
+      }
       await this.cmdReinstall({ reload: false });
       this.updateStatusBarTooltip();
     });
@@ -38,21 +41,43 @@ class EditBackgroundByPath {
   }
 
   getHtmlFilePath() {
-    let htmlFile = path.join(this.base, 'electron-sandbox', 'workbench', 'workbench.html');
-    if (!fs.existsSync(htmlFile)) {
-      htmlFile = path.join(this.base, 'electron-sandbox', 'workbench', 'workbench-apc-extension.html');
+    // List of possible folders to check for backward compatibility
+    const folders = ['electron-sandbox', 'electron-browser'];
+    // List of possible HTML files to check
+    const fileNames = ['workbench-dev.html', 'workbench.html', 'workbench-apc-extension.html', 'workbench.esm.html'];
+
+    let htmlFile = null;
+
+    // Try each folder and file combination until we find an existing one
+    for (const folder of folders) {
+      for (const fileName of fileNames) {
+        const filePath = path.join(this.base, folder, 'workbench', fileName);
+
+        if (fs.existsSync(filePath)) {
+          htmlFile = filePath;
+          break;
+        }
+      }
+
+      if (htmlFile) {
+        break;
+      }
     }
-    if (!fs.existsSync(htmlFile)) {
-      htmlFile = path.join(this.base, 'electron-sandbox', 'workbench', 'workbench.esm.html');
-    }
-    if (!fs.existsSync(htmlFile)) {
+    console.log('htmlfile:', htmlFile);
+
+    if (!htmlFile) {
       vscode.window.showInformationMessage(msg.unableToLocateVsCodeInstallationPath);
     }
+
     return htmlFile;
   }
 
   BackupFilePath(uuid) {
-    return path.join(this.base, 'electron-sandbox', 'workbench', `workbench.${uuid}.bak-background-perp`);
+    // Determine the folder by checking which exists (electron-sandbox or electron-browser)
+    const htmlFileDir = path.dirname(this.htmlFile);
+    const folderName = path.basename(path.dirname(htmlFileDir));
+
+    return path.join(this.base, folderName, 'workbench', `workbench.${uuid}.bak-background-perp`);
   }
 
   async cmdInstall(options) {
@@ -73,7 +98,10 @@ class EditBackgroundByPath {
 
   async uninstallImpl() {
     const backupUuid = await this.getBackupUuid(this.htmlFile);
-    if (!backupUuid) return;
+
+    if (!backupUuid) {
+      return;
+    }
     const backupPath = this.BackupFilePath(backupUuid);
     await this.restoreBackup(backupPath);
     await this.deleteBackupFiles();
@@ -83,7 +111,10 @@ class EditBackgroundByPath {
     try {
       const htmlContent = await fs.promises.readFile(htmlFilePath, 'utf-8');
       const m = htmlContent.match(/<!-- !! BACKGROUND-BY-PROJECT-ID ([0-9a-fA-F-]+) !! -->/);
-      if (!m) return null;
+
+      if (!m) {
+        return null;
+      }
       return m[1];
     } catch (e) {
       vscode.window.showInformationMessage(msg.somethingWrong + e);
@@ -142,6 +173,7 @@ class EditBackgroundByPath {
       this.disabledRestart();
       return;
     }
+
     if (options?.reload) {
       this.reloadWindow();
     }
@@ -159,10 +191,10 @@ class EditBackgroundByPath {
   async patchHtml(config) {
     try {
       let res = `<script data-extension="editor-background-by-path">${getInjectionJs(config)}</script>`;
-			res += `<style data-extension="editor-background-by-path">
+      res += `<style data-extension="editor-background-by-path">
 				div#bartag\\.editor-background-by-path { display: none!important; }
 			</style>`;
-			return res;
+      return res;
     } catch (e) {
       console.error(e);
       vscode.window.showWarningMessage(msg.cannotLoad('Injection config'));
@@ -229,4 +261,5 @@ function deactivate() {
 }
 
 exports.activate = activate;
+
 exports.deactivate = deactivate;
